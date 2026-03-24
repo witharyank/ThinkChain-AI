@@ -29,6 +29,10 @@ Final output is strict JSON, designed for dashboards, APIs, and enterprise workf
 - **Structured decision output:** Consistent JSON with strategy, actions, risks, ROI, and confidence
 - **Resilience by design:** Retry logic, model fallback, and graceful error recovery
 - **Learning loop:** Memory module improves future runs from prior successful strategies
+- **Premium workflow UI:** React Flow-based node graph with live execution animation
+
+## Demo Screenshot
+![Debate-Driven AI Workflow UI Demo](./docs/demo-workflow-ui.png)
 
 ## System Architecture
 The platform uses a stateful agent graph (LangGraph/custom workflow) where each node performs a distinct reasoning responsibility and passes structured state forward.
@@ -59,6 +63,14 @@ flowchart LR
     H --> I["FastAPI Response + Frontend View"]
 ```
 
+### UI Flow Visualization Layer
+The project now includes a professional **React + Vite + React Flow** interface in `/ui`:
+- Animated node-by-node execution (`Research -> Decision`)
+- Running/Completed/Failed node status visualization
+- Edge animation during flow progression
+- Clickable nodes with a right-side detail panel
+- Final decision card with structured output
+
 ## Why Not a Chatbot?
 | Capability | Typical Chatbot | Debate-Driven Multi-Agent System |
 |---|---|---|
@@ -77,13 +89,16 @@ flowchart LR
 - Non-crashing recovery flow with safe fallback decisions
 - Memory-backed adaptation from previous successful runs
 - Frontend interface for fast prompt-to-result demonstrations
+- Animated node-based execution graph with glow transitions
+- Real-time node output inspection in side panel
 - Enterprise-oriented impact fields: ROI, risk, timeline, confidence
 
 ## Tech Stack
 - **Backend:** FastAPI, Python
 - **Orchestration:** LangGraph (or custom state graph workflow)
 - **LLM Provider:** Groq API
-- **Frontend:** HTML + JavaScript
+- **Frontend (Legacy):** HTML + JavaScript
+- **Frontend (Primary Demo UI):** React + Vite + React Flow
 - **State/Memory:** JSON memory store with dedupe + retention logic
 
 ## How It Works (Step-by-Step)
@@ -96,6 +111,16 @@ flowchart LR
 7. Decision agent synthesizes final recommendation.
 8. Formatter enforces strict JSON schema.
 9. API returns structured output for frontend rendering.
+
+### API Response Contract for Workflow UI
+`POST /run` returns:
+- `final_output`: strict decision JSON for final panel
+- `agent_outputs`: per-node outputs for animation mapping
+  - `research`
+  - `proposal`
+  - `critique`
+  - `simulation`
+  - `decision`
 
 ## Real-World Use Case Demo
 ### Scenario: Reduce startup burn rate
@@ -112,6 +137,7 @@ Research -> Proposal -> Critique -> Simulation -> Decision -> Structured Output
 - 2 risks  
 - ROI + risk level + implementation timeline  
 - confidence score
+- animated execution trace across all five agents in UI
 
 **Business Impact**  
 - Faster strategic decisions  
@@ -162,6 +188,7 @@ Research -> Proposal -> Critique -> Simulation -> Decision -> Structured Output
 - **Model Fallback:** Switches to backup model when primary model is constrained
 - **Safe Defaults:** Returns valid structured fallback outputs under failure
 - **Memory Learning:** Stores successful strategy summaries for future context injection
+- **Execution Animation:** Simulates agent progression with timed node activation
 
 ## ET AI Hackathon 2026 Alignment
 ### 1) Innovation
@@ -212,14 +239,23 @@ uvicorn api.app:app --reload
 - Open `index.html` in browser (or serve it via a static server)
 - Enter a prompt and click **Run**
 
+### 6. Run React Flow UI (recommended demo)
+```bash
+cd ui
+npm install
+npm run dev
+```
+Open the Vite URL (usually `http://localhost:5173`).
+
 ## Demo Instructions
 1. Start FastAPI backend.
-2. Open frontend UI.
+2. Open React Flow UI (`/ui` app).
 3. Submit prompt: `Reduce startup burn rate`.
-4. Walk judges through each agent stage in logs.
-5. Show strict JSON output and impact fields.
-6. Re-run to show memory-informed improvement.
-7. Simulate API stress to demonstrate graceful fallback behavior.
+4. Show live node activation (Research -> Proposer -> Critic -> Simulation -> Decision).
+5. Click each node and inspect detailed output in side panel.
+6. Show final structured JSON decision in bottom panel.
+7. Re-run to show memory-informed improvement.
+8. Simulate API stress to demonstrate graceful fallback behavior.
 
 ## Future Improvements
 - Multi-objective optimization across ROI, risk, and timeline

@@ -28,6 +28,15 @@ def home():
 def run_agent(data: InputData):
     try:
         result = graph.invoke({"input": data.input_text})
-        return result.get("final_output", {})
+        return {
+            "final_output": result.get("final_output", {}),
+            "agent_outputs": {
+                "research": result.get("data", ""),
+                "proposal": result.get("proposal", ""),
+                "critique": result.get("critique", ""),
+                "simulation": result.get("simulation", ""),
+                "decision": result.get("decision", ""),
+            },
+        }
     except Exception as e:
         return {"error": str(e)}

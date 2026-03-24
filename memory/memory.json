@@ -1,10 +1,5 @@
 [
   {
-    "topic": "Improve SaaS sales",
-    "strategy": "Improved Strategy: Based on the research, proposal, and critique, I suggest a comprehensive and multi-faceted strategy to improve SaaS sales",
-    "score": 1
-  },
-  {
     "topic": "Reduce startup burn rate",
     "strategy": "FINAL Improved Strategy: To reduce startup burn rate, we suggest a comprehensive and multi-faceted strategy that includes: Overall Strate...",
     "score": 1
@@ -46,6 +41,11 @@
   },
   {
     "topic": "cash burnout",
+    "strategy": "Rate limit reached. Try again later.",
+    "score": 50
+  },
+  {
+    "topic": "Reduce startup burn rate",
     "strategy": "Rate limit reached. Try again later.",
     "score": 50
   }
