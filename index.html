@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI Agent System</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    text-align: center;
+    padding: 40px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.input-box {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+input {
+    padding: 12px;
+    width: 60%;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #22c55e;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🤖 Debate-Driven AI</h1>
+
+    <div class="input-box">
+        <input id="inputText" placeholder="Enter problem...">
+        <button onclick="runAgent()">Run</button>
+    </div>
+
+    <div id="output" class="card">Result will appear here...</div>
+
+    <canvas id="chart" style="margin-top:30px;"></canvas>
+</div>
+
+<script>
+async function runAgent() {
+    const input = document.getElementById("inputText").value;
+
+    const res = await fetch("http://127.0.0.1:8000/run", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ input_text: input })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("output").innerHTML =
+        `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+
+    renderChart(data);
+}
+
+function renderChart(data) {
+    const ctx = document.getElementById("chart");
+
+    const roi = parseInt(data.expected_impact.roi);
+    const confidence = data.confidence_score;
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['ROI %', 'Confidence'],
+            datasets: [{
+                label: 'Performance',
+                data: [roi, confidence]
+            }]
+        }
+    });
+}
+</script>
+
+</body>
+</html>
