@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Flow from "./components/Flow";
 import { runNodeSequence } from "./utils/execution";
 
@@ -44,21 +44,9 @@ export default function App() {
   const [selectedNode, setSelectedNode] = useState("research");
   const [finalOutput, setFinalOutput] = useState(null);
   const [error, setError] = useState("");
-  const [memory, setMemory] = useState([]);
-  const [bestRun, setBestRun] = useState(null);
-
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/memory/insights")
-      .then((res) => res.json())
-      .then((data) => {
-        setMemory(data.history || []);
-        setBestRun(data.best_run || null);
-      })
-      .catch(() => {
-        setMemory([]);
-        setBestRun(null);
-      });
-  }, []);
+  const [researchSources, setResearchSources] = useState([]);
+  const [debateHistory, setDebateHistory] = useState([]);
+  const [revisionLabel, setRevisionLabel] = useState("");
 
   const runPipeline = async () => {
     if (!prompt.trim()) return;
@@ -68,6 +56,9 @@ export default function App() {
     setError("");
     setActiveNode(null);
     setFinalOutput(null);
+    setResearchSources([]);
+    setDebateHistory([]);
+    setRevisionLabel("");
     setNodeOutputs(DEFAULT_NODE_OUTPUTS);
     setNodeStatus(DEFAULT_NODE_STATUS);
 
@@ -85,19 +76,33 @@ export default function App() {
 
       const agentOutputs = payload.agent_outputs || {};
       const retryCount = Number(agentOutputs.retry_count || 0);
-      const criticDecision = String(agentOutputs.critic_decision || "revise").toLowerCase();
-      const dynamicSequence = [
-        "research",
-        ...Array.from({ length: retryCount + 1 }).flatMap(() => ["proposer", "critic"]),
-        "simulation",
-        "decision",
-      ];
+      const proposal = agentOutputs.proposal || "";
+      const critique = agentOutputs.critique || "";
+
+      const history = [];
+      for (let i = 0; i <= retryCount; i++) {
+        history.push({
+          round: i + 1,
+          proposal,
+          critique,
+        });
+      }
+      setDebateHistory(history);
+      if (retryCount > 0) {
+        setRevisionLabel(`Revision Round ${retryCount + 1}`);
+      }
 
       await runNodeSequence({
-        sequence: dynamicSequence,
+        sequence: AGENT_SEQUENCE,
         delayMs: 550,
         getOutputKey: (nodeId) => OUTPUT_KEY_MAP[nodeId],
-        getOutputValue: (outputKey) => agentOutputs[outputKey] || "No output generated",
+        getOutputValue: (outputKey) => {
+          if (outputKey === "research") {
+            const researchPayload = agentOutputs.research || {};
+            return researchPayload.output || "No output generated";
+          }
+          return agentOutputs[outputKey] || "No output generated";
+        },
         onNodeStart: (nodeId) => {
           setActiveNode(nodeId);
           setNodeStatus((prev) => ({ ...prev, [nodeId]: "running" }));
@@ -105,30 +110,17 @@ export default function App() {
         },
         onNodeComplete: (nodeId, outputValue) => {
           setNodeOutputs((prev) => ({ ...prev, [nodeId]: outputValue }));
-          setNodeStatus((prev) => {
-            if (nodeId === "critic") {
-              if (retryCount > 0 || criticDecision === "revise") {
-                return { ...prev, [nodeId]: "revised" };
-              }
-              if (criticDecision === "approve") {
-                return { ...prev, [nodeId]: "approved" };
-              }
-            }
-            return { ...prev, [nodeId]: "completed" };
-          });
+          if (nodeId === "research") {
+            const sources = (agentOutputs.research && agentOutputs.research.sources) || [];
+            setResearchSources(Array.isArray(sources) ? sources : []);
+          }
+          setNodeStatus((prev) => ({ ...prev, [nodeId]: "completed" }));
         },
         onSequenceDone: () => setActiveNode(null),
       });
 
       setFinalOutput(payload.final_output || {});
       setStatus("Success");
-      fetch("http://127.0.0.1:8000/memory/insights")
-        .then((res) => res.json())
-        .then((data) => {
-          setMemory(data.history || []);
-          setBestRun(data.best_run || null);
-        })
-        .catch(() => {});
     } catch (runError) {
       setStatus("Failed");
       setError(runError.message || "Unexpected error");
@@ -183,27 +175,43 @@ export default function App() {
           <p className="side-subtitle">{selectedNode?.toUpperCase() || "Select a node"}</p>
           <p className="side-summary">{summarize(nodeOutputs[selectedNode])}</p>
           <pre>{nodeOutputs[selectedNode] || "Click a node to inspect output."}</pre>
+          {selectedNode === "research" && researchSources.length > 0 ? (
+            <div>
+              <h4>Sources</h4>
+              {researchSources.slice(0, 3).map((s, i) => (
+                <div key={i} className="source-item">
+                  <a href={s.url} target="_blank" rel="noreferrer">
+                    {s.title || s.url}
+                  </a>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </aside>
-      </section>
-
-      <section className="memory-insights">
-        <div className="memory-card best-run">
-          <h3>Best Strategy</h3>
-          <p>{bestRun?.topic || "No runs yet"}</p>
-          <p>Runway: {bestRun?.runway ?? 0} months</p>
-        </div>
-        <div className="memory-card comparison">
-          <h3>Improvement</h3>
-          <p>
-            Runway: {memory[memory.length - 2]?.runway ?? 0} -> {memory[memory.length - 1]?.runway ?? 0} months
-          </p>
-        </div>
       </section>
 
       <section className="final-output-card">
         <h3>Final Decision</h3>
         {error ? <p className="error-text">{error}</p> : null}
         <pre>{finalOutput ? JSON.stringify(finalOutput, null, 2) : "Run the workflow to view final output."}</pre>
+      </section>
+
+      <section className="debate-panel">
+        <h3>⚔️ Agent Debate</h3>
+        {revisionLabel ? <p className="revision-label">{revisionLabel}</p> : null}
+        {debateHistory.length === 0 ? (
+          <p className="debate-empty">Run the workflow to view debate rounds.</p>
+        ) : (
+          debateHistory.map((d, i) => (
+            <div key={i} className="debate-card">
+              <p>
+                <b>Round {d.round}</b>
+              </p>
+              <p className="proposal">💡 Proposal: {d.proposal || "No proposal available"}</p>
+              <p className="critique">😈 Critic: {d.critique || "No critique available"}</p>
+            </div>
+          ))
+        )}
       </section>
     </div>
   );

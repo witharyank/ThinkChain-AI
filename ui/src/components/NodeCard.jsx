@@ -14,10 +14,6 @@ export default function NodeCard({ data }) {
   const statusLabel =
     data.status === "running"
       ? "Running..."
-      : data.status === "revised"
-      ? "Revised"
-      : data.status === "approved"
-      ? "Approved"
       : data.status === "completed"
       ? "Completed"
       : data.status === "failed"

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from workflows.main_flow import graph
-from memory.store import get_runs, get_best_run
+from memory.store import get_runs
 
 app = FastAPI()
 
@@ -32,16 +32,6 @@ def home():
 def memory_runs():
     return get_runs()
 
-
-@app.get("/memory/insights")
-def memory_insights():
-    runs = get_runs()
-    best = get_best_run()
-    return {
-        "history": runs,
-        "best_run": best,
-    }
-
 # ✅ Main route
 @app.post("/run")
 def run_agent(data: InputData):
@@ -61,15 +51,14 @@ def run_agent(data: InputData):
         return {
             "final_output": result.get("final_output", {}),
             "agent_outputs": {
-                "research": result.get("data", ""),
+                "research": {
+                    "output": result.get("data", ""),
+                    "sources": result.get("research_sources", []),
+                },
                 "proposal": result.get("proposal", ""),
                 "critique": result.get("critique", ""),
                 "simulation": result.get("simulation", ""),
                 "decision": result.get("decision", ""),
-                "critic_score": result.get("critic_score", 0),
-                "critic_decision": result.get("critic_decision", "revise"),
-                "critic_can_retry": result.get("critic_can_retry", False),
-                "retry_count": result.get("revision_count", 0),
             },
         }
     except Exception as e:
@@ -115,14 +104,13 @@ def run_agent(data: InputData):
                 "confidence_score": 70,
             },
             "agent_outputs": {
-                "research": "Error occurred.",
+                "research": {
+                    "output": "Error occurred.",
+                    "sources": [],
+                },
                 "proposal": "Using fallback strategy.",
                 "critique": "Skipped due to error.",
                 "simulation": '{"monthly_burn": 200000, "runway_months": 10, "cost_savings_estimate": 30000}',
                 "decision": f"Fallback decision. Error: {str(e)}",
-                "critic_score": 0,
-                "critic_decision": "revise",
-                "critic_can_retry": False,
-                "retry_count": 0,
             },
         }

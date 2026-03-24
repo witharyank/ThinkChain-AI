@@ -13,6 +13,7 @@ from groq import Groq
 from langgraph.graph import END, StateGraph
 
 from tools.finance import calculate_burn
+from tools.search import search_web
 from memory.store import get_runs, save_run
 
 load_dotenv()
@@ -37,11 +38,11 @@ class AgentState(TypedDict, total=False):
     cash: float
     run_history: list[dict]
     data: str
+    research_sources: list[dict]
     proposal: str
     critique: str
     critic_score: int
     critic_decision: str
-    critic_can_retry: bool
     revision_count: int
     simulation: str
     simulation_data: dict
@@ -223,8 +224,19 @@ def memory_agent(state: AgentState):
 
 def research_agent(state: AgentState):
     memory_text = runs_summary(state.get("run_history", []))
+    try:
+        search_result = search_web(state.get("input", ""))
+        web_data = clean_text(search_result.get("summary", ""))
+        sources = search_result.get("sources", [])
+        if not web_data:
+            web_data = "No external data available"
+    except Exception:
+        web_data = "No external data available"
+        sources = []
+
     prompt = (
-        f"Research enterprise strategy for: {state.get('input', '')}\n"
+        f"Use the following real-world data:\n{web_data}\n\n"
+        f"Then research about: {state.get('input', '')}\n"
         f"Previous runs show: {memory_text}\n"
         "Return concise business context and constraints."
     )
@@ -233,7 +245,7 @@ def research_agent(state: AgentState):
         return call_groq_with_retry(prompt, "Rate limit reached. Try again later.")
 
     data_text = run_with_validation(generate, lambda x: bool(clean_text(x)), "Rate limit reached. Try again later.")
-    return {"data": data_text}
+    return {"data": data_text, "research_sources": sources}
 
 
 def proposer_agent(state: AgentState):
@@ -271,16 +283,13 @@ def critic_agent(state: AgentState):
     )
 
     revision_count = int(state.get("revision_count", 0))
-    can_retry = False
-    if critic["decision"] == "revise" and revision_count < MAX_CRITIC_REVISIONS:
+    if critic["decision"] == "revise":
         revision_count += 1
-        can_retry = True
 
     return {
         "critique": critic["feedback"],
         "critic_score": critic["score"],
         "critic_decision": critic["decision"],
-        "critic_can_retry": can_retry,
         "revision_count": revision_count,
     }
 
@@ -450,9 +459,9 @@ def format_output_agent(state: AgentState):
 def route_after_critic(state: AgentState) -> str:
     score = int(state.get("critic_score", 0))
     decision = str(state.get("critic_decision", "revise")).lower()
-    can_retry = bool(state.get("critic_can_retry", False))
+    revision_count = int(state.get("revision_count", 0))
 
-    if (decision == "revise" or score < 6) and can_retry:
+    if (decision == "revise" or score < 6) and revision_count <= MAX_CRITIC_REVISIONS:
         return "revise"
     return "approve"
 

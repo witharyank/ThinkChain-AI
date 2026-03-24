@@ -31,17 +31,6 @@ def get_runs():
     return data[-MAX_RUNS:]
 
 
-def get_best_run():
-    """
-    Return the run with the highest runway value.
-    Returns None when store is empty.
-    """
-    runs = get_runs()
-    if not runs:
-        return None
-    return max(runs, key=lambda x: float(x.get("runway", 0)))
-
-
 def save_run(data):
     """
     Save one run entry and keep only last 5 records.

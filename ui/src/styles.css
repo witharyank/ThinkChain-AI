@@ -180,30 +180,6 @@ body {
   margin-top: 0;
 }
 
-.memory-insights {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.memory-card {
-  background: linear-gradient(180deg, var(--panel), var(--panel-2));
-  border: 1px solid #24324f;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 16px 26px rgba(2, 8, 24, 0.25);
-}
-
-.memory-card h3 {
-  margin: 0 0 6px;
-}
-
-.memory-card p {
-  margin: 4px 0;
-  color: #dbeafe;
-}
-
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -279,14 +255,6 @@ body {
   color: #86efac;
 }
 
-.node-status-revised {
-  color: #fbbf24;
-}
-
-.node-status-approved {
-  color: #22c55e;
-}
-
 .node-status-failed {
   color: #fca5a5;
 }
@@ -316,16 +284,6 @@ body {
 .node-card.completed {
   border-color: rgba(34, 197, 94, 0.5);
   box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.42), 0 0 18px rgba(34, 197, 94, 0.22);
-}
-
-.node-card.revised {
-  border-color: rgba(251, 191, 36, 0.6);
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.5), 0 0 18px rgba(251, 191, 36, 0.25);
-}
-
-.node-card.approved {
-  border-color: rgba(34, 197, 94, 0.7);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6), 0 0 18px rgba(34, 197, 94, 0.3);
 }
 
 .node-card.failed {
@@ -369,6 +327,64 @@ body {
   font-weight: 600;
 }
 
+.debate-panel {
+  margin-top: 20px;
+  padding: 15px;
+  background: #0f172a;
+  border: 1px solid #24324f;
+  border-radius: 10px;
+}
+
+.debate-panel h3 {
+  margin: 0 0 10px;
+}
+
+.debate-empty {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.revision-label {
+  margin: 0 0 10px;
+  color: #facc15;
+  font-weight: 700;
+}
+
+.debate-card {
+  background: #1e293b;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-left: 4px solid #38bdf8;
+  border-radius: 6px;
+}
+
+.debate-card p {
+  margin: 6px 0;
+}
+
+.proposal {
+  color: #22c55e;
+}
+
+.critique {
+  color: #f43f5e;
+}
+
+.source-item {
+  font-size: 12px;
+  margin-top: 6px;
+  color: #38bdf8;
+}
+
+.source-item a {
+  text-decoration: none;
+  color: #38bdf8;
+}
+
+.source-item a:hover {
+  text-decoration: underline;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -407,10 +423,6 @@ body {
 
 @media (max-width: 1160px) {
   .workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .memory-insights {
     grid-template-columns: 1fr;
   }
 
