@@ -20,6 +20,8 @@ const EDGE_META = [
 const nodeTypes = { agentNode: NodeCard };
 
 export default function Flow({ activeNode, nodeOutputs, nodeStatus, onNodeSelect, selectedNode }) {
+  const doneStatuses = new Set(["completed", "revised", "approved"]);
+
   const nodes = NODE_META.map((node) => ({
     id: node.id,
     type: "agentNode",
@@ -43,8 +45,8 @@ export default function Flow({ activeNode, nodeOutputs, nodeStatus, onNodeSelect
       const targetStatus = nodeStatus[target];
       let edgeState = "idle";
       if (sourceStatus === "failed" || targetStatus === "failed") edgeState = "failed";
-      else if (sourceStatus === "completed" && targetStatus === "running") edgeState = "active";
-      else if (sourceStatus === "completed" && (targetStatus === "completed" || targetStatus === "idle")) {
+      else if (doneStatuses.has(sourceStatus) && targetStatus === "running") edgeState = "active";
+      else if (doneStatuses.has(sourceStatus) && (doneStatuses.has(targetStatus) || targetStatus === "idle")) {
         edgeState = "completed";
       }
       return { edgeState };
@@ -58,8 +60,8 @@ export default function Flow({ activeNode, nodeOutputs, nodeStatus, onNodeSelect
       const sourceStatus = nodeStatus[source];
       const targetStatus = nodeStatus[target];
       if (sourceStatus === "failed" || targetStatus === "failed") return "failed";
-      if (sourceStatus === "completed" && targetStatus === "running") return "active";
-      if (sourceStatus === "completed" && (targetStatus === "completed" || targetStatus === "idle")) return "completed";
+      if (doneStatuses.has(sourceStatus) && targetStatus === "running") return "active";
+      if (doneStatuses.has(sourceStatus) && (doneStatuses.has(targetStatus) || targetStatus === "idle")) return "completed";
       return "idle";
     })()}`,
     markerEnd: {

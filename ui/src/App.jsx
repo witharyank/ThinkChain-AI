@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Flow from "./components/Flow";
 import { runNodeSequence } from "./utils/execution";
 
@@ -44,6 +44,21 @@ export default function App() {
   const [selectedNode, setSelectedNode] = useState("research");
   const [finalOutput, setFinalOutput] = useState(null);
   const [error, setError] = useState("");
+  const [memory, setMemory] = useState([]);
+  const [bestRun, setBestRun] = useState(null);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/memory/insights")
+      .then((res) => res.json())
+      .then((data) => {
+        setMemory(data.history || []);
+        setBestRun(data.best_run || null);
+      })
+      .catch(() => {
+        setMemory([]);
+        setBestRun(null);
+      });
+  }, []);
 
   const runPipeline = async () => {
     if (!prompt.trim()) return;
@@ -69,9 +84,17 @@ export default function App() {
       }
 
       const agentOutputs = payload.agent_outputs || {};
+      const retryCount = Number(agentOutputs.retry_count || 0);
+      const criticDecision = String(agentOutputs.critic_decision || "revise").toLowerCase();
+      const dynamicSequence = [
+        "research",
+        ...Array.from({ length: retryCount + 1 }).flatMap(() => ["proposer", "critic"]),
+        "simulation",
+        "decision",
+      ];
 
       await runNodeSequence({
-        sequence: AGENT_SEQUENCE,
+        sequence: dynamicSequence,
         delayMs: 550,
         getOutputKey: (nodeId) => OUTPUT_KEY_MAP[nodeId],
         getOutputValue: (outputKey) => agentOutputs[outputKey] || "No output generated",
@@ -82,13 +105,30 @@ export default function App() {
         },
         onNodeComplete: (nodeId, outputValue) => {
           setNodeOutputs((prev) => ({ ...prev, [nodeId]: outputValue }));
-          setNodeStatus((prev) => ({ ...prev, [nodeId]: "completed" }));
+          setNodeStatus((prev) => {
+            if (nodeId === "critic") {
+              if (retryCount > 0 || criticDecision === "revise") {
+                return { ...prev, [nodeId]: "revised" };
+              }
+              if (criticDecision === "approve") {
+                return { ...prev, [nodeId]: "approved" };
+              }
+            }
+            return { ...prev, [nodeId]: "completed" };
+          });
         },
         onSequenceDone: () => setActiveNode(null),
       });
 
       setFinalOutput(payload.final_output || {});
       setStatus("Success");
+      fetch("http://127.0.0.1:8000/memory/insights")
+        .then((res) => res.json())
+        .then((data) => {
+          setMemory(data.history || []);
+          setBestRun(data.best_run || null);
+        })
+        .catch(() => {});
     } catch (runError) {
       setStatus("Failed");
       setError(runError.message || "Unexpected error");
@@ -144,6 +184,20 @@ export default function App() {
           <p className="side-summary">{summarize(nodeOutputs[selectedNode])}</p>
           <pre>{nodeOutputs[selectedNode] || "Click a node to inspect output."}</pre>
         </aside>
+      </section>
+
+      <section className="memory-insights">
+        <div className="memory-card best-run">
+          <h3>Best Strategy</h3>
+          <p>{bestRun?.topic || "No runs yet"}</p>
+          <p>Runway: {bestRun?.runway ?? 0} months</p>
+        </div>
+        <div className="memory-card comparison">
+          <h3>Improvement</h3>
+          <p>
+            Runway: {memory[memory.length - 2]?.runway ?? 0} -> {memory[memory.length - 1]?.runway ?? 0} months
+          </p>
+        </div>
       </section>
 
       <section className="final-output-card">

@@ -1,11 +1,6 @@
 [
   {
     "topic": "Reduce startup burn rate",
-    "strategy": "FINAL Improved Strategy: To reduce startup burn rate, we suggest a comprehensive and multi-faceted strategy that includes: Overall Strate...",
-    "score": 1
-  },
-  {
-    "topic": "Reduce startup burn rate",
     "strategy": "Final Strategy: To reduce startup burn rate, implement a balanced approach that combines cost-cutting measures with revenue-generating in...",
     "score": 85
   },
@@ -48,5 +43,10 @@
     "topic": "Reduce startup burn rate",
     "strategy": "Rate limit reached. Try again later.",
     "score": 50
+  },
+  {
+    "topic": "Reduce startup burn rate",
+    "strategy": "Based on the provided proposal and simulation results, which indicate a monthly burn of $200,000 and a runway of 10 months, with potential cost savings of $30,0",
+    "score": 100
   }
 ]
