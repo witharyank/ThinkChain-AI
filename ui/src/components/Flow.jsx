@@ -3,11 +3,11 @@ import "reactflow/dist/style.css";
 import NodeCard from "./NodeCard";
 
 const NODE_META = [
-  { id: "research", label: "Research Agent", x: 20, y: 180 },
-  { id: "proposer", label: "Proposer Agent", x: 280, y: 70 },
-  { id: "critic", label: "Critic Agent", x: 540, y: 180 },
-  { id: "simulation", label: "Simulation Agent", x: 800, y: 70 },
-  { id: "decision", label: "Decision Agent", x: 1060, y: 180 },
+  { id: "research", label: "🧠 Research Agent", x: 20, y: 180 },
+  { id: "proposer", label: "💡 Proposer Agent", x: 280, y: 70 },
+  { id: "critic", label: "😈 Critic Agent", x: 540, y: 180 },
+  { id: "simulation", label: "📊 Simulation Agent", x: 800, y: 70 },
+  { id: "decision", label: "🎯 Decision Agent", x: 1060, y: 180 },
 ];
 
 const EDGE_META = [
