@@ -112,8 +112,13 @@ export default function App() {
         getOutputKey: (nodeId) => OUTPUT_KEY_MAP[nodeId],
         getOutputValue: (outputKey) => {
           if (outputKey === "research") {
-            const researchPayload = agentOutputs.research || {};
-            return researchPayload.output || "No output generated";
+            const researchPayload = agentOutputs.research;
+            const researchText =
+              (typeof researchPayload === "string" && researchPayload) ||
+              (researchPayload && researchPayload.research) ||
+              (researchPayload && researchPayload.output) ||
+              "No research available";
+            return researchText;
           }
           return agentOutputs[outputKey] || "No output generated";
         },
@@ -125,7 +130,12 @@ export default function App() {
         onNodeComplete: (nodeId, outputValue) => {
           setNodeOutputs((prev) => ({ ...prev, [nodeId]: outputValue }));
           if (nodeId === "research") {
-            const sources = (agentOutputs.research && agentOutputs.research.sources) || [];
+            const researchPayload = agentOutputs.research;
+            const sources = Array.isArray(agentOutputs.research_sources)
+              ? agentOutputs.research_sources
+              : Array.isArray(researchPayload && researchPayload.sources)
+              ? researchPayload.sources
+              : [];
             setResearchSources(Array.isArray(sources) ? sources : []);
           }
           setNodeStatus((prev) => ({ ...prev, [nodeId]: "completed" }));

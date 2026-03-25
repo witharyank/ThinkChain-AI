@@ -18,6 +18,7 @@ from memory.store import get_runs, save_run
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+print("🔥 NEW CODE LOADED 🔥")
 
 PRIMARY_MODEL = "llama-3.3-70b-versatile"
 BACKUP_MODEL = "llama-3.1-8b-instant"
@@ -38,7 +39,7 @@ class AgentState(TypedDict, total=False):
     expenses: float
     cash: float
     run_history: list[dict]
-    data: str
+    research: str
     research_sources: list[dict]
     proposal: str
     critique: str
@@ -72,7 +73,7 @@ def extract_financials(text: str) -> dict:
     def find_value(keyword_pattern):
         # pattern 1: keyword before number
         match1 = re.search(
-            rf"{keyword_pattern}[^\d]*(\d+\.?\d*)\s*(million|lakh)?",
+            rf"(?:{keyword_pattern})[^\d]*(\d+\.?\d*)\s*(million|lakh)?",
             text
         )
 
@@ -259,24 +260,22 @@ def memory_agent(state: AgentState):
     session_id = clean_text(state.get("session_id", "default_session")) or "default_session"
     runs = get_runs(session_id)
     financial_inputs = extract_financials(state.get("input", ""))
-    print("Extracted:", financial_inputs)
+    print("EXTRACTED:", financial_inputs)
 
     revenue = (
         financial_inputs["revenue"]
         if financial_inputs["revenue"] is not None
-        else float(state.get("revenue", DEFAULT_REVENUE))
+        else state.get("revenue", DEFAULT_REVENUE)
     )
-
     expenses = (
         financial_inputs["expenses"]
         if financial_inputs["expenses"] is not None
-        else float(state.get("expenses", DEFAULT_EXPENSES))
+        else state.get("expenses", DEFAULT_EXPENSES)
     )
-
     cash = (
         financial_inputs["cash"]
         if financial_inputs["cash"] is not None
-        else float(state.get("cash", DEFAULT_CASH))
+        else state.get("cash", DEFAULT_CASH)
     )
 
     print("FINAL VALUES:", revenue, expenses, cash)
@@ -292,35 +291,75 @@ def memory_agent(state: AgentState):
 
 
 def research_agent(state: AgentState):
-    memory_text = runs_summary(state.get("run_history", []))
     try:
-        search_result = search_web(state.get("input", ""))
-        web_data = clean_text(search_result.get("summary", ""))
-        sources = search_result.get("sources", [])
+        query = state.get("input", "")
+        try:
+            memory_text = runs_summary(state.get("run_history", []))
+        except Exception as e:
+            print("Memory Error:", e)
+            memory_text = "No previous runs"
+
+        web_data = ""
+        sources = []
+        try:
+            search_result = search_web(query)
+            if isinstance(search_result, dict):
+                web_data = clean_text(search_result.get("summary", ""))
+                raw_sources = search_result.get("sources", [])
+                sources = raw_sources if isinstance(raw_sources, list) else []
+            elif isinstance(search_result, str):
+                web_data = clean_text(search_result)
+            else:
+                web_data = ""
+        except Exception as e:
+            print("Tavily Error:", e)
+            web_data = "No external data available"
+            sources = []
+
         if not web_data:
             web_data = "No external data available"
-    except Exception:
-        web_data = "No external data available"
-        sources = []
 
-    prompt = (
-        f"Use the following real-world data:\n{web_data}\n\n"
-        f"Then research about: {state.get('input', '')}\n"
-        f"Previous runs show: {memory_text}\n"
-        "Return concise business context and constraints."
-    )
+        prompt = (
+            f"Use this real-world data:\n{web_data}\n\n"
+            f"Now analyze:\n{query}\n\n"
+            f"Previous runs show: {memory_text}\n"
+            "Return concise business context and constraints."
+        )
 
-    def generate():
-        return call_groq_with_retry(prompt, "Rate limit reached. Try again later.")
+        def generate():
+            return call_groq_with_retry(prompt, "Basic market analysis generated")
 
-    data_text = run_with_validation(generate, lambda x: bool(clean_text(x)), "Rate limit reached. Try again later.")
-    return {"data": data_text, "research_sources": sources}
+        result = run_with_validation(
+            generate,
+            lambda x: bool(clean_text(x)),
+            "Basic market analysis generated",
+        )
+        print("RESEARCH OUTPUT:", result)
+
+        output = {
+            "research": result or "Basic market analysis generated",
+            "research_sources": sources,
+        }
+        print("AFTER RESEARCH:", {**state, **output})
+        return output
+    except Exception as e:
+        print("Research Agent Failed:", e)
+        output = {
+            "research": "Fallback research: basic business analysis applied",
+            "research_sources": [],
+        }
+        print("AFTER RESEARCH:", {**state, **output})
+        return output
 
 
 def proposer_agent(state: AgentState):
     hint = similar_run_hint(state.get("input", ""), state.get("run_history", []))
+    print("PROPOSER INPUT:", state.get("research"))
+    research = state.get("research", "")
+    if not research:
+        research = "Basic business context"
     prompt = (
-        f"Research context:\n{state.get('data', '')}\n\n"
+        f"Research context:\n{research}\n\n"
         f"Previous critique feedback:\n{state.get('critique', '')}\n\n"
         f"Bias instruction from memory: {hint}\n"
         "Propose 5 concise actionable bullet points for business impact."
@@ -330,7 +369,9 @@ def proposer_agent(state: AgentState):
         return call_groq_with_retry(prompt, "Using cached/basic strategy")
 
     proposal = run_with_validation(generate, lambda x: bool(clean_text(x)), "Using cached/basic strategy")
-    return {"proposal": proposal}
+    output = {"proposal": proposal}
+    print("AFTER PROPOSER:", {**state, **output})
+    return output
 
 
 def critic_agent(state: AgentState):
@@ -355,18 +396,21 @@ def critic_agent(state: AgentState):
     if critic["decision"] == "revise":
         revision_count += 1
 
-    return {
+    output = {
         "critique": critic["feedback"],
         "critic_score": critic["score"],
         "critic_decision": critic["decision"],
         "revision_count": revision_count,
     }
+    print("AFTER CRITIC:", {**state, **output})
+    return output
 
 
 def simulation_agent(state: AgentState):
     revenue = float(state.get("revenue", DEFAULT_REVENUE))
     expenses = float(state.get("expenses", DEFAULT_EXPENSES))
     cash = float(state.get("cash", DEFAULT_CASH))
+    print("SIMULATION INPUT:", revenue, expenses, cash)
 
     burn_result = calculate_burn(expenses=expenses, revenue=revenue, cash=cash)
     monthly_burn = float(burn_result["monthly_burn"])
@@ -379,7 +423,7 @@ def simulation_agent(state: AgentState):
         "cost_savings_estimate": round(cost_savings_estimate, 2),
     }
 
-    return {
+    output = {
         "simulation": json.dumps(simulation_data),
         "simulation_data": simulation_data,
         "finance_inputs": {
@@ -388,6 +432,8 @@ def simulation_agent(state: AgentState):
             "cash": cash,
         },
     }
+    print("AFTER SIMULATION:", {**state, **output})
+    return output
 
 
 def decision_agent(state: AgentState):
@@ -404,7 +450,9 @@ def decision_agent(state: AgentState):
         return call_groq_with_retry(prompt, "Fallback decision. Confidence score: 60")
 
     decision = run_with_validation(generate, lambda x: bool(clean_text(x)), "Fallback decision. Confidence score: 60")
-    return {"decision": decision}
+    output = {"decision": decision}
+    print("AFTER DECISION:", {**state, **output})
+    return output
 
 
 def build_final_output(state: AgentState) -> dict:

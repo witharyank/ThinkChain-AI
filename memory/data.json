@@ -70,5 +70,21 @@
       "runway": 2.5,
       "timestamp": "2026-03-25T05:10:31.478692+00:00"
     }
+  ],
+  "test": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T10:15:25.988041+00:00"
+    }
+  ],
+  "1171d7e5-4bf3-4579-bf53-402c95e11fb2": [
+    {
+      "topic": "My startup earns 25 lakh revenue and burns 8 lakh per month with 50 lakh cash",
+      "burn": 800000.0,
+      "runway": 6.25,
+      "timestamp": "2026-03-25T10:18:50.518046+00:00"
+    }
   ]
 }

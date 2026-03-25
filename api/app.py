@@ -63,7 +63,7 @@ def run_agent(data: InputData):
             generate_consulting_pdf(
                 topic=result.get("final_output", {}).get("topic", data.input_text),
                 strategy_summary=result.get("final_output", {}).get("strategy_summary", ""),
-                research_output=result.get("data", ""),
+                research_output=result.get("research", ""),
                 proposal_output=result.get("proposal", ""),
                 critique_output=result.get("critique", ""),
                 simulation_output=result.get("simulation", ""),
@@ -79,7 +79,7 @@ def run_agent(data: InputData):
             "final_output": result.get("final_output", {}),
             "agent_outputs": {
                 "research": {
-                    "output": result.get("data", ""),
+                    "output": result.get("research", ""),
                     "sources": result.get("research_sources", []),
                 },
                 "proposal": result.get("proposal", ""),
