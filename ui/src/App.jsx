@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Flow from "./components/Flow";
 import { runNodeSequence } from "./utils/execution";
 
@@ -35,6 +35,13 @@ function summarize(text) {
 }
 
 export default function App() {
+  const sessionId = useRef(null);
+  if (!sessionId.current) {
+    const uuid =
+      globalThis?.crypto?.randomUUID?.() ??
+      `session_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+    sessionId.current = uuid;
+  }
   const [prompt, setPrompt] = useState("Reduce startup burn rate");
   const [status, setStatus] = useState("Idle");
   const [loading, setLoading] = useState(false);
@@ -47,6 +54,10 @@ export default function App() {
   const [researchSources, setResearchSources] = useState([]);
   const [debateHistory, setDebateHistory] = useState([]);
   const [revisionLabel, setRevisionLabel] = useState("");
+
+  const downloadPDF = () => {
+    window.open("http://127.0.0.1:8000/report", "_blank");
+  };
 
   const runPipeline = async () => {
     if (!prompt.trim()) return;
@@ -66,7 +77,10 @@ export default function App() {
       const response = await fetch("http://127.0.0.1:8000/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input_text: prompt }),
+        body: JSON.stringify({
+          input_text: prompt,
+          session_id: sessionId.current,
+        }),
       });
 
       const payload = await response.json();
@@ -194,6 +208,9 @@ export default function App() {
         <h3>Final Decision</h3>
         {error ? <p className="error-text">{error}</p> : null}
         <pre>{finalOutput ? JSON.stringify(finalOutput, null, 2) : "Run the workflow to view final output."}</pre>
+        <button onClick={downloadPDF} disabled={!finalOutput}>
+          📄 Download Report
+        </button>
       </section>
 
       <section className="debate-panel">

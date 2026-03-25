@@ -6,48 +6,67 @@ from datetime import datetime, timezone
 DATA_DIR = os.path.join("memory")
 DATA_FILE = os.path.join(DATA_DIR, "data.json")
 MAX_RUNS = 5
+DEFAULT_SESSION = "default_session"
 
 
 def _ensure_store():
     os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w", encoding="utf-8") as file:
-            json.dump([], file, indent=2)
+            json.dump({}, file, indent=2)
 
 
-def get_runs():
-    """
-    Return persisted runs (latest first in storage order), max 5.
-    """
+def _read_store():
     _ensure_store()
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
+            if isinstance(data, dict):
+                return data
+            # Backward compatibility for old list-only schema.
+            if isinstance(data, list):
+                return {DEFAULT_SESSION: data[-MAX_RUNS:]}
     except Exception:
-        return []
-
-    if not isinstance(data, list):
-        return []
-    return data[-MAX_RUNS:]
+        pass
+    return {}
 
 
-def save_run(data):
+def _write_store(store):
+    with open(DATA_FILE, "w", encoding="utf-8") as file:
+        json.dump(store, file, indent=2)
+
+
+def get_runs(session_id=DEFAULT_SESSION):
     """
-    Save one run entry and keep only last 5 records.
+    Return persisted runs for one session (last 5).
+    """
+    sid = str(session_id or DEFAULT_SESSION)
+    store = _read_store()
+    runs = store.get(sid, [])
+    if not isinstance(runs, list):
+        return []
+    return runs[-MAX_RUNS:]
+
+
+def save_run(session_id, run_data):
+    """
+    Save one run entry for a session and keep only last 5 records.
     Expected shape: {topic, burn, runway, timestamp}
     """
-    _ensure_store()
-    runs = get_runs()
+    sid = str(session_id or DEFAULT_SESSION)
+    store = _read_store()
 
     entry = {
-        "topic": str(data.get("topic", "N/A")),
-        "burn": float(data.get("burn", 0)),
-        "runway": float(data.get("runway", 0)),
-        "timestamp": data.get("timestamp") or datetime.now(timezone.utc).isoformat(),
+        "topic": str(run_data.get("topic", "N/A")),
+        "burn": float(run_data.get("burn", 0)),
+        "runway": float(run_data.get("runway", 0)),
+        "timestamp": run_data.get("timestamp") or datetime.now(timezone.utc).isoformat(),
     }
 
-    runs.append(entry)
-    runs = runs[-MAX_RUNS:]
+    session_runs = store.get(sid, [])
+    if not isinstance(session_runs, list):
+        session_runs = []
+    session_runs.append(entry)
+    store[sid] = session_runs[-MAX_RUNS:]
 
-    with open(DATA_FILE, "w", encoding="utf-8") as file:
-        json.dump(runs, file, indent=2)
+    _write_store(store)

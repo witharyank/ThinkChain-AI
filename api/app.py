@@ -1,8 +1,10 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from workflows.main_flow import graph
 from memory.store import get_runs
+from reports.pdf_generator import generate_consulting_pdf
 
 app = FastAPI()
 
@@ -18,6 +20,7 @@ app.add_middleware(
 # ✅ Input model
 class InputData(BaseModel):
     input_text: str
+    session_id: str | None = None
     revenue: float | None = None
     expenses: float | None = None
     cash: float | None = None
@@ -29,13 +32,19 @@ def home():
 
 
 @app.get("/memory")
-def memory_runs():
-    return get_runs()
+def memory_runs(session_id: str = "default_session"):
+    return get_runs(session_id)
+
+
+@app.get("/report")
+def get_report():
+    return FileResponse("AI_Strategy_Report.pdf", media_type="application/pdf", filename="AI_Strategy_Report.pdf")
 
 # ✅ Main route
 @app.post("/run")
 def run_agent(data: InputData):
     try:
+        session_id = data.session_id or "default_session"
         revenue = data.revenue if data.revenue is not None else 300000.0
         expenses = data.expenses if data.expenses is not None else 500000.0
         cash = data.cash if data.cash is not None else 2000000.0
@@ -43,11 +52,29 @@ def run_agent(data: InputData):
         result = graph.invoke(
             {
                 "input": data.input_text,
+                "session_id": session_id,
                 "revenue": revenue,
                 "expenses": expenses,
                 "cash": cash,
             }
         )
+        # Generate consulting-style PDF report without changing API response structure.
+        try:
+            generate_consulting_pdf(
+                topic=result.get("final_output", {}).get("topic", data.input_text),
+                strategy_summary=result.get("final_output", {}).get("strategy_summary", ""),
+                research_output=result.get("data", ""),
+                proposal_output=result.get("proposal", ""),
+                critique_output=result.get("critique", ""),
+                simulation_output=result.get("simulation", ""),
+                decision_output=result.get("decision", ""),
+                risk_notes=result.get("final_output", {}).get("risk_notes", []),
+                sources=result.get("research_sources", []),
+                output_path="AI_Strategy_Report.pdf",
+            )
+        except Exception:
+            pass
+
         return {
             "final_output": result.get("final_output", {}),
             "agent_outputs": {

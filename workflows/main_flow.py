@@ -33,6 +33,7 @@ DEFAULT_CASH = 2000000.0
 
 class AgentState(TypedDict, total=False):
     input: str
+    session_id: str
     revenue: float
     expenses: float
     cash: float
@@ -55,6 +56,49 @@ def clean_text(text: Any) -> str:
     if text is None:
         return ""
     return re.sub(r"\s+", " ", str(text).replace("\r", " ").strip())
+
+
+def extract_financials(text: str) -> dict:
+    text = (text or "").lower()
+
+    def parse_value(num, unit):
+        num = float(num)
+        if unit == "million":
+            return num * 1_000_000
+        if unit == "lakh":
+            return num * 100_000
+        return num
+
+    def find_value(keyword_pattern):
+        # pattern 1: keyword before number
+        match1 = re.search(
+            rf"{keyword_pattern}[^\d]*(\d+\.?\d*)\s*(million|lakh)?",
+            text
+        )
+
+        if match1:
+            num = match1.group(1)
+            unit = match1.group(2)
+            return parse_value(num, unit or "")
+
+        # pattern 2: number before keyword
+        match2 = re.search(
+            rf"(\d+\.?\d*)\s*(million|lakh)?\s*(?:{keyword_pattern})",
+            text
+        )
+
+        if match2:
+            num = match2.group(1)
+            unit = match2.group(2)
+            return parse_value(num, unit or "")
+
+        return None
+
+    return {
+        "revenue": find_value("revenue"),
+        "expenses": find_value("burn|expense|expenses"),
+        "cash": find_value("cash"),
+    }
 
 
 def extract_actions(text: str) -> list[str]:
@@ -212,13 +256,38 @@ def memory_agent(state: AgentState):
     """
     Load persistent run history and normalize dynamic finance inputs.
     """
-    runs = get_runs()
+    session_id = clean_text(state.get("session_id", "default_session")) or "default_session"
+    runs = get_runs(session_id)
+    financial_inputs = extract_financials(state.get("input", ""))
+    print("Extracted:", financial_inputs)
+
+    revenue = (
+        financial_inputs["revenue"]
+        if financial_inputs["revenue"] is not None
+        else float(state.get("revenue", DEFAULT_REVENUE))
+    )
+
+    expenses = (
+        financial_inputs["expenses"]
+        if financial_inputs["expenses"] is not None
+        else float(state.get("expenses", DEFAULT_EXPENSES))
+    )
+
+    cash = (
+        financial_inputs["cash"]
+        if financial_inputs["cash"] is not None
+        else float(state.get("cash", DEFAULT_CASH))
+    )
+
+    print("FINAL VALUES:", revenue, expenses, cash)
+
     return {
+        "session_id": session_id,
         "run_history": runs,
         "revision_count": state.get("revision_count", 0),
-        "revenue": float(state.get("revenue", DEFAULT_REVENUE)),
-        "expenses": float(state.get("expenses", DEFAULT_EXPENSES)),
-        "cash": float(state.get("cash", DEFAULT_CASH)),
+        "revenue": float(revenue),
+        "expenses": float(expenses),
+        "cash": float(cash),
     }
 
 
@@ -443,6 +512,7 @@ def format_output_agent(state: AgentState):
     # Persist short memory record for dashboard + prompting.
     try:
         save_run(
+            state.get("session_id", "default_session"),
             {
                 "topic": final_output.get("topic", "N/A"),
                 "burn": float(final_output.get("expected_impact", {}).get("monthly_burn", 0)),

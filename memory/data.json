@@ -1,14 +1,74 @@
-[
-  {
-    "topic": "Reduce startup burn rate",
-    "burn": 200000.0,
-    "runway": 10.0,
-    "timestamp": "2026-03-24T10:59:44.084475+00:00"
-  },
-  {
-    "topic": "Reduce startup burn rate",
-    "burn": 200000.0,
-    "runway": 10.0,
-    "timestamp": "2026-03-24T11:16:01.076209+00:00"
-  }
-]
+{
+  "default_session": [
+    {
+      "topic": "Reduce startup burn rate",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T18:21:46.791025+00:00"
+    },
+    {
+      "topic": "my company want to launch herbal shampoo",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T18:26:58.100047+00:00"
+    },
+    {
+      "topic": "Reduce startup burn rate",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T18:37:51.868008+00:00"
+    },
+    {
+      "topic": "my company want to launch of new gaming pc and our company has sufficient fund to take risk",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T18:51:03.677254+00:00"
+    },
+    {
+      "topic": "Reduce startup burn rate",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T19:12:01.727625+00:00"
+    }
+  ],
+  "bf79ab42-9447-485c-93db-1b861af09989": [
+    {
+      "topic": "I want to launch a herbal shampoo startup in India with a budget of \u20b920 lakh. Help me reduce burn rate and build a profitable strategy.",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T19:29:51.088634+00:00"
+    }
+  ],
+  "88b7929d-b251-46e6-b3c9-51ce6b54cd43": [
+    {
+      "topic": "I want to launch a herbal shampoo startup in India with a budget of \u20b920 lakh. Help me reduce burn rate and build a profitable strategy.",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-24T19:38:40.862887+00:00"
+    }
+  ],
+  "34aeb866-5488-484f-b4b4-54c5f520e83b": [
+    {
+      "topic": "i have a startup and it cover the north part of india and currently revenue is about 10 million inr and cash burn is 1 million and we plan to expand it",
+      "burn": 200000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-25T04:10:58.743816+00:00"
+    }
+  ],
+  "4c4cdc24-8956-4032-bf35-f8e2e32217b5": [
+    {
+      "topic": "I run a startup in North India with current revenue of 10 million INR, monthly burn of 1 million INR, and available cash of 5 million INR. I want to expand while reducing burn and increasing runway. Suggest best strategy with comparison.",
+      "burn": 0.0,
+      "runway": 0.0,
+      "timestamp": "2026-03-25T05:00:07.890551+00:00"
+    }
+  ],
+  "086f187c-23d2-473b-b88c-2577f3a47a65": [
+    {
+      "topic": "My startup earns 25 lakh monthly revenue and burns 8 lakh per month with 50 lakh cash. Help optimize.",
+      "burn": 800000.0,
+      "runway": 2.5,
+      "timestamp": "2026-03-25T05:10:31.478692+00:00"
+    }
+  ]
+}
