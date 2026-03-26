@@ -86,5 +86,143 @@
       "runway": 6.25,
       "timestamp": "2026-03-25T10:18:50.518046+00:00"
     }
+  ],
+  "test2": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T10:48:44.432380+00:00"
+    }
+  ],
+  "test_failsafe": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T11:00:13.710440+00:00"
+    }
+  ],
+  "680a80d9-2e2a-4605-ade0-5e86c553bad7": [
+    {
+      "topic": "I run a D2C herbal shampoo startup in India. Current monthly revenue is 25 lakh INR, burn is 8 lakh INR, and available cash is 50 lakh INR. I want to reduce burn and scale sustainably.",
+      "burn": 800000.0,
+      "runway": 6.25,
+      "timestamp": "2026-03-25T11:02:08.767105+00:00"
+    }
+  ],
+  "test_v3": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T11:11:51.776995+00:00"
+    }
+  ],
+  "test_v4": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T11:12:47.960182+00:00"
+    }
+  ],
+  "cdc161c4-4358-4be5-a329-9b7a4208b7b3": [
+    {
+      "topic": "I run a D2C herbal shampoo startup in India. Current monthly revenue is 25 lakh INR, burn is 8 lakh INR, and available cash is 50 lakh INR. I want to reduce burn and scale sustainably.",
+      "burn": 800000.0,
+      "runway": 6.25,
+      "timestamp": "2026-03-25T11:13:48.647356+00:00"
+    }
+  ],
+  "test_wow": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T11:21:39.513788+00:00"
+    }
+  ],
+  "test_vis": [
+    {
+      "topic": "Reduce startup burn rate 200000",
+      "burn": 200000.0,
+      "runway": 25.0,
+      "timestamp": "2026-03-25T11:44:59.642375+00:00"
+    },
+    {
+      "topic": "Reduce marketing costs 50000",
+      "burn": 500000.0,
+      "runway": 10.0,
+      "timestamp": "2026-03-25T11:45:08.706840+00:00"
+    }
+  ],
+  "test_prod": [
+    {
+      "topic": "Scale startup aggressively without killing runway",
+      "burn": 500000.0,
+      "runway": 16.0,
+      "timestamp": "2026-03-25T11:55:14.220146+00:00"
+    }
+  ],
+  "test_trust": [
+    {
+      "topic": "Extend Fintech runway by 6 months ahead of Series B",
+      "burn": 500000.0,
+      "runway": 4.0,
+      "timestamp": "2026-03-25T12:03:01.088020+00:00"
+    }
+  ],
+  "a363a1b3-97ba-46a9-885f-ecaed32b9a53": [
+    {
+      "topic": "\u201cWe are a fast-growing D2C fitness startup burning $50K/month with declining customer retention (down from 42% to 25%). CAC is rising rapidly due to ad saturation. Should we pivot to subscription-based model, optimize retention, or cut marketing spend? Simulate outcomes for 6 months under different strategies.\u201d",
+      "burn": 50.0,
+      "runway": 40000.0,
+      "timestamp": "2026-03-25T17:54:47.235471+00:00"
+    },
+    {
+      "topic": "\u201cWe are a fast-growing D2C fitness startup burning $50K/month with declining customer retention (down from 42% to 25%). CAC is rising rapidly due to ad saturation. Should we pivot to subscription-based model, optimize retention, or cut marketing spend? Simulate outcomes for 6 months under different strategies.\u201d",
+      "burn": 50.0,
+      "runway": 40000.0,
+      "timestamp": "2026-03-25T17:56:37.043107+00:00"
+    }
+  ],
+  "47654808-3a7f-438d-9a26-7c13bc1fb80a": [
+    {
+      "topic": "\u201cWe are a fast-growing D2C fitness startup burning $50K/month with declining customer retention (down from 42% to 25%). CAC is rising rapidly due to ad saturation. Should we pivot to subscription-based model, optimize retention, or cut marketing spend? Simulate outcomes for 6 months under different strategies.\u201d",
+      "burn": 50.0,
+      "runway": 40000.0,
+      "timestamp": "2026-03-25T18:05:05.585949+00:00"
+    },
+    {
+      "topic": "\u201cWe are a fast-growing D2C fitness startup burning $50K/month with declining customer retention (down from 42% to 25%). CAC is rising rapidly due to ad saturation. Should we pivot to subscription-based model, optimize retention, or cut marketing spend? Simulate outcomes for 6 months under different strategies.\u201d",
+      "burn": 50000.0,
+      "runway": 40.0,
+      "timestamp": "2026-03-25T18:07:32.813352+00:00"
+    }
+  ],
+  "e769f5cf-7834-4368-b1db-f925c5cfdb2f": [
+    {
+      "topic": "Reduce SaaS churn while maintaining 40% growth margin",
+      "burn": 500000.0,
+      "runway": 4.0,
+      "timestamp": "2026-03-25T18:11:00.709308+00:00"
+    }
+  ],
+  "8d576643-593d-4765-ac23-ed26cbc2d270": [
+    {
+      "topic": "Extend Fintech runway by 6 months ahead of Series B",
+      "burn": 500000.0,
+      "runway": 12.0,
+      "timestamp": "2026-03-25T18:18:15.943404+00:00"
+    }
+  ],
+  "9f769f55-d034-49a2-b685-1b7857540d06": [
+    {
+      "topic": "Extend Fintech runway by 6 months ahead of Series B",
+      "burn": 500000.0,
+      "runway": 12.0,
+      "timestamp": "2026-03-25T18:22:10.768206+00:00"
+    }
   ]
 }

@@ -24,6 +24,7 @@ class InputData(BaseModel):
     revenue: float | None = None
     expenses: float | None = None
     cash: float | None = None
+    mode: str | None = "balanced"
 
 # ✅ Home route
 @app.get("/")
@@ -56,6 +57,7 @@ def run_agent(data: InputData):
                 "revenue": revenue,
                 "expenses": expenses,
                 "cash": cash,
+                "mode": data.mode or "balanced",
             }
         )
         # Generate consulting-style PDF report without changing API response structure.
@@ -70,13 +72,48 @@ def run_agent(data: InputData):
                 decision_output=result.get("decision", ""),
                 risk_notes=result.get("final_output", {}).get("risk_notes", []),
                 sources=result.get("research_sources", []),
+                action_plan=result.get("action_plan", []),
+                execution_timeline=result.get("execution_timeline", {}),
+                kpi_metrics=result.get("kpi_metrics", []),
+                scenario_analysis=result.get("scenario_analysis", []),
+                confidence_breakdown=result.get("confidence_breakdown", {}),
+                assumptions=result.get("assumptions", []),
                 output_path="AI_Strategy_Report.pdf",
             )
         except Exception:
             pass
 
-        return {
+        print("PIPELINE SUCCESS. FINAL API RESPONSE PREPARED.")
+        
+        # Get explicitly requested components
+        decision_payload = result.get("decision_payload", {})
+        impact_comp = result.get("impact_comparison", {})
+        
+        final_response = {
+            # EXPLICITLY REQUESTED KEYS FOR TASK 10 (STEP 3)
+            "decision": decision_payload.get("decision", ""),
+            "reasoning": decision_payload.get("reasoning", ""),
+            "impact": decision_payload.get("impact_6_months", ""),
+            "actions": decision_payload.get("actions", []),
+            "impactComparison": impact_comp,
+            "metrics": result.get("final_output", {}).get("metrics", {}),
+            "strategy": decision_payload.get("decision", ""),
+            
+            # EXISTING UI DATA (DO NOT BREAK DASHBOARD)
             "final_output": result.get("final_output", {}),
+            "debate_history": result.get("debate_history", []),
+            "rejected_strategies": result.get("rejected_strategies", []),
+            "decision_trace": result.get("decision_trace", []),
+            "best_strategy": result.get("best_strategy", {}),
+            "impact_comparison": result.get("impact_comparison", {}),
+            "improvement_summary": result.get("improvement_summary", []),
+            "memory_comparison": result.get("memory_comparison", None),
+            "action_plan": result.get("action_plan", []),
+            "execution_timeline": result.get("execution_timeline", {}),
+            "kpi_metrics": result.get("kpi_metrics", []),
+            "scenario_analysis": result.get("scenario_analysis", []),
+            "confidence_breakdown": result.get("confidence_breakdown", {}),
+            "assumptions": result.get("assumptions", []),
             "agent_outputs": {
                 "research": {
                     "output": result.get("research", ""),
@@ -87,57 +124,44 @@ def run_agent(data: InputData):
                 "simulation": result.get("simulation", ""),
                 "decision": result.get("decision", ""),
             },
+            "burn_reduction_percent": result.get("burn_reduction_percent", 0),
+            "monthly_savings": result.get("monthly_savings", 0),
+            "runway_months": result.get("runway_months", 0),
+            "strategy": result.get("strategy", "")
         }
+        
+        print(f"FINAL DEBUG PAYLOAD LOGGING: {final_response['decision']} | ACTIONS: {len(final_response['actions'])}")
+        return final_response
     except Exception as e:
-        revenue = data.revenue if data.revenue is not None else 300000.0
-        expenses = data.expenses if data.expenses is not None else 500000.0
-        cash = data.cash if data.cash is not None else 2000000.0
+        print("PIPELINE ERROR:", e)
         return {
-            "final_output": {
-                "topic": data.input_text,
-                "strategy_summary": "Fallback output due to runtime error.",
-                "top_actions": [
-                    "Audit recurring spend and remove low ROI tools",
-                    "Renegotiate vendor contracts and improve payment terms",
-                    "Prioritize critical hires and pause nonessential recruitment",
-                    "Focus marketing only on highest converting channels",
-                    "Improve invoicing and accelerate customer collections cycle",
-                ],
-                "metrics": {
-                    "burn_rate": "Monthly net cash outflow",
-                    "runway": "Months of cash left",
-                    "cash_flow": "Net cash movement",
-                    "operating_expenses": "Total recurring costs",
-                },
-                "inputs_used": {
-                    "revenue": revenue,
-                    "expenses": expenses,
-                    "cash": cash
-                },
-                "risk_notes": [
-                    "Avoid cutting essential growth investments",
-                    "Monitor team productivity impact",
-                ],
-                "expected_impact": {
-                    "monthly_burn": 200000,
-                    "runway_months": 10,
-                    "cost_savings_estimate": 30000,
-                },
-                "real_impact": {
-                    "burn_reduction": "INR 30000 saved/month",
-                    "runway_improvement": "10 -> 11.76 months",
-                    "confidence_score": 70,
-                },
-                "confidence_score": 70,
-            },
-            "agent_outputs": {
-                "research": {
-                    "output": "Error occurred.",
-                    "sources": [],
-                },
-                "proposal": "Using fallback strategy.",
-                "critique": "Skipped due to error.",
-                "simulation": '{"monthly_burn": 200000, "runway_months": 10, "cost_savings_estimate": 30000}',
-                "decision": f"Fallback decision. Error: {str(e)}",
-            },
+            "final_output": {},
+            "debate_history": [],
+            "rejected_strategies": [],
+            "decision_trace": [],
+            "best_strategy": {},
+            "impact_comparison": {},
+            "improvement_summary": [],
+            "memory_comparison": None,
+            "action_plan": [],
+            "execution_timeline": {},
+            "kpi_metrics": [],
+            "scenario_analysis": [],
+            "confidence_breakdown": {},
+            "assumptions": [],
+            "research": "Fallback research",
+            "research_sources": [],
+            "agent_outputs": {},
+            
+            # Fallbacks for explicit keys
+            "decision": "Fallback Strategy",
+            "reasoning": "Pipeline failed to execute",
+            "impact": "N/A",
+            "actions": [],
+            "impactComparison": {},
+            "metrics": {},
+            "strategy": "Fallback Strategy",
+            "burn_reduction_percent": 0,
+            "monthly_savings": 0,
+            "runway_months": 0
         }
