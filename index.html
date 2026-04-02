@@ -38,6 +38,11 @@ input {
     border-radius: 10px;
     border: none;
     font-size: 16px;
+    outline: none;
+}
+
+input:focus {
+    box-shadow: 0 0 8px #22c55e;
 }
 
 button {
@@ -48,6 +53,11 @@ button {
     color: black;
     font-weight: bold;
     cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #16a34a;
 }
 
 .card {
@@ -57,6 +67,12 @@ button {
     border-radius: 15px;
     margin-top: 20px;
     text-align: left;
+    min-height: 100px;
+}
+
+.loading {
+    color: #22c55e;
+    font-weight: bold;
 }
 
 pre {
@@ -69,7 +85,7 @@ pre {
 <body>
 
 <div class="container">
-    <h1> Debate-Driven AI</h1>
+    <h1>Debate-Driven AI</h1>
 
     <div class="input-box">
         <input id="inputText" placeholder="Enter problem...">
@@ -82,32 +98,50 @@ pre {
 </div>
 
 <script>
+let chartInstance = null;
+
 async function runAgent() {
     const input = document.getElementById("inputText").value;
+    const output = document.getElementById("output");
 
-    const res = await fetch("http://127.0.0.1:8000/run", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ input_text: input })
-    });
+    if (!input) {
+        output.innerHTML = "<span style='color:red;'>Please enter input</span>";
+        return;
+    }
 
-    const data = await res.json();
+    output.innerHTML = "<div class='loading'>Processing...</div>";
 
-    document.getElementById("output").innerHTML =
-        `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    try {
+        const res = await fetch("http://127.0.0.1:8000/run", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ input_text: input })
+        });
 
-    renderChart(data);
+        const data = await res.json();
+
+        output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+
+        renderChart(data);
+
+    } catch (err) {
+        output.innerHTML = "<span style='color:red;'>Error connecting to backend</span>";
+    }
 }
 
 function renderChart(data) {
     const ctx = document.getElementById("chart");
 
-    const roi = parseInt(data.expected_impact.roi);
-    const confidence = data.confidence_score;
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
 
-    new Chart(ctx, {
+    const roi = parseInt(data.expected_impact?.roi || 0);
+    const confidence = data.confidence_score || 0;
+
+    chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['ROI %', 'Confidence'],
@@ -115,6 +149,13 @@ function renderChart(data) {
                 label: 'Performance',
                 data: [roi, confidence]
             }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 }
