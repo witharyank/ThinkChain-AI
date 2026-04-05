@@ -1,54 +1,33 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.pyo
-*.pyd
-*.so
+*.pyc
 
-# Virtual environments
+# Virtual Environment (VERY IMPORTANT)
 venv/
-.venv/
-env/
-ENV/
 
-# Environment variables
+# Environment variables (you already have .env in root)
 .env
-.env.*
 
-# Build / distribution
+# Build files
 build/
 dist/
 *.egg-info/
-.eggs/
-pip-wheel-metadata/
 
-# Test / coverage / tooling
+# Test / coverage
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
 .coverage
-.coverage.*
 htmlcov/
 
 # Logs
 *.log
-logs/
 
-# Frontend / Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# IDE / Editor
-.idea/
+# IDE
 .vscode/
-*.swp
-*.swo
+.idea/
 
-# OS files
+# OS junk
 .DS_Store
 Thumbs.db
-Desktop.ini
+
+# Optional (only if frontend grows later)
+node_modules/
